@@ -1,29 +1,49 @@
 <?php
-
 namespace App\Filament\Resources;
+use Filament\Tables\Columns\BooleanColumn;
+
 
 use App\Filament\Resources\MedicamentResource\Pages;
-use App\Filament\Resources\MedicamentResource\RelationManagers;
 use App\Models\Medicament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\TextColumn;
 
 class MedicamentResource extends Resource
 {
     protected static ?string $model = Medicament::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
+                Forms\Components\TextInput::make('nom_com')
+                    ->label('Commercial Name')
+                    ->required(),
+                Forms\Components\TextInput::make('nom_dci')
+                    ->label('DCI Name')
+                    ->required(),
+                Forms\Components\TextInput::make('dosage')
+                    ->label('Dosage')
+                    ->required(),
+                Forms\Components\TextInput::make('unite')
+                    ->label('Unit')
+                    ->required(),
+                Forms\Components\TextInput::make('conditionnement')
+                    ->label('Conditioning')
+                    ->required(),
+                Forms\Components\Checkbox::make('remboursable')
+                    ->label('Refundable'),
+                Forms\Components\DatePicker::make('date_remboursement')
+                    ->label('Refund Date')
+                    ->nullable(),
+                Forms\Components\TextInput::make('tarif_ref')
+                    ->label('Reference Price')
+                    ->required(),
             ]);
     }
 
@@ -31,26 +51,16 @@ class MedicamentResource extends Resource
     {
         return $table
             ->columns([
-                //
-            ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                TextColumn::make('nom_com')->label('Commercial Name'),
+                TextColumn::make('nom_dci')->label('DCI Name'),
+                TextColumn::make('dosage')->label('Dosage'),
+                TextColumn::make('unite')->label('Unit'),
+                TextColumn::make('conditionnement')->label('Packaging'),
+                BooleanColumn::make('remboursable')->label('Reimbursable'),
+                BooleanColumn::make('hopital')->label('For Hospital Use'),
+                BooleanColumn::make('secteur_sanitaire')->label('Public Health Sector'),
+                BooleanColumn::make('officine')->label('For Pharmacies'),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

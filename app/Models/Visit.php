@@ -18,7 +18,8 @@ class Visit extends Model
     }
     public function prescriptions()
     {
-        return $this->hasMany(Prescription::class);
+        // The relationship is with the 'prescription' table, not 'prescriptions'
+        return $this->hasMany(Prescription::class, 'visit_id');
     }
 
     public function appointment()

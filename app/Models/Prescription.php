@@ -1,22 +1,26 @@
 <?php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Prescription extends Model
 {
-    protected $table = 'prescription';
+    use HasFactory;
 
-    protected $fillable = ['visit_id', 'medicament_id', 'dosage_instructions', 'quantity'];
+    protected $table = 'prescription'; // Ensure that the correct table name is used
 
-    // Define relationships
-       public function visit()
+    protected $fillable = [
+        'medicament_num_enr', 'dosage_instructions', 'quantity', 'visit_id',
+    ];
+
+    public function visit()
     {
-        return $this->belongsTo(Visit::class);
+        return $this->belongsTo(Visit::class, 'visit_id');
     }
 
     public function medicament()
     {
-        return $this->belongsTo(Medicament::class);
+        return $this->belongsTo(Medicament::class, 'medicament_num_enr', 'num_enr');
     }
 }

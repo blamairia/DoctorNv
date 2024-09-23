@@ -87,7 +87,7 @@ class VisitResource extends Resource
                 Repeater::make('prescriptions')
                     ->relationship('prescriptions')
                     ->schema([
-                        Select::make('medicament_id')
+                        Select::make('medicament_num_enr')
                             ->label('Medicament')
                             ->relationship('medicament', 'nom_com')
                             ->searchable()

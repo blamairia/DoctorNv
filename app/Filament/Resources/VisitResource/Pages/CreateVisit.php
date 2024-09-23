@@ -10,10 +10,9 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DateTimePicker;
-
 use App\Models\Appointment;
-
 use App\Models\Patient;
+
 class CreateVisit extends CreateRecord
 {
     protected static string $resource = VisitResource::class;
@@ -76,7 +75,7 @@ class CreateVisit extends CreateRecord
                 ->form([
                     Select::make('patient_id')
                         ->label('Patient')
-                        ->options(Patient::all()->pluck('full_name', 'id')) // Ensure you have `first_name` and `last_name` concatenated
+                        ->options(Patient::all()->pluck('first_name', 'id')) // Use first and last name as necessary
                         ->required(),
                     DateTimePicker::make('appointment_date')->label('Appointment Date')->required(),
                 ])
@@ -84,6 +83,7 @@ class CreateVisit extends CreateRecord
                     Appointment::create($data);  // Logic to create a new appointment
                 }),
 
+            // Open modal when follow-up date is selected
             Action::make('editAppointment')
                 ->label('Edit Appointment')
                 ->modalHeading('Edit Appointment')
@@ -111,5 +111,14 @@ class CreateVisit extends CreateRecord
                 })
                 ->button(),
         ];
+    }
+
+    public function save()
+    {
+        // Open modal when follow-up date is present
+        if ($this->data['appointment_modal']) {
+            $this->dispatchBrowserEvent('open-add-appointment-modal');
+        }
+        parent::save();
     }
 }

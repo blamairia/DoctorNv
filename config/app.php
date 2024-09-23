@@ -91,6 +91,7 @@ return [
          */
         App\Providers\FortifyServiceProvider::class,
         Filament\FilamentServiceProvider::class, // Filament service provider
+
     ],
 
     'aliases' => [

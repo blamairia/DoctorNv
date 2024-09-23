@@ -20,11 +20,15 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Request;
 
 class VisitResource extends Resource
 {
     protected static ?string $model = Visit::class;
-
+    public static function getNavigationIcon(): string
+    {
+        return 'iconpark-appointment-o'; // Example icon for a medicament (you can choose a pill or related icon)
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -32,6 +36,7 @@ class VisitResource extends Resource
                 Select::make('patient_id')
                     ->label('Patient')
                     ->searchable()
+                    ->default(Request::query('patient_id'))
                     ->options(function (string $search = null) {
                         return Patient::query()
                             ->when($search, function (Builder $query) use ($search) {

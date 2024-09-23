@@ -20,6 +20,10 @@ return new class extends Migration
             $table->integer('quantity');
             $table->timestamps();
         });
+        Schema::table('visits', function (Blueprint $table) {
+            $table->index('patient_id');  // Index the patient_id column
+        });
+
 
     }
 

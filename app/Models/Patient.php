@@ -16,4 +16,15 @@ class Patient extends Model
     {
         return "{$this->first_name} {$this->last_name}";
     }
+     // Add this visits relationship
+     public function visits()
+     {
+         return $this->hasMany(Visit::class);
+     }
+       // Add the appointments relationship
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
 }

@@ -45,7 +45,16 @@ class SpecialiteResource extends Resource
                 ]),
             ]);
     }
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false; // Hide from sidebar
+    }
 
+    // This prevents users from directly accessing the Prescription list page
+    public static function canViewAny(): bool
+    {
+        return false; // Users cannot view the list of prescriptions
+    }
     public static function getRelations(): array
     {
         return [

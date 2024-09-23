@@ -1,0 +1,22 @@
+<?php
+namespace App\Filament\Resources\PatientResource\RelationManagers;
+
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+
+class AppointmentsRelationManager extends RelationManager
+{
+    protected static string $relationship = 'appointments';
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('appointment_date')->label('Appointment Date')->dateTime(),
+                TextColumn::make('reason')->label('Reason'),
+            ])
+            ->filters([]);
+    }
+}

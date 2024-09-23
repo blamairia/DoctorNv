@@ -12,6 +12,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DateTimePicker;
 use App\Models\Appointment;
 use App\Models\Patient;
+use Illuminate\Support\Facades\Request;
 
 class CreateVisit extends CreateRecord
 {
@@ -111,6 +112,14 @@ class CreateVisit extends CreateRecord
                 })
                 ->button(),
         ];
+    }
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // Prepopulate the form with patient_id and visit_date if passed in the URL
+        return array_merge($data, [
+            'patient_id' => Request::query('patient_id'), // Preselect the patient
+            'visit_date' => Request::query('visit_date', now()), // Prepopulate with current time if not provided
+        ]);
     }
 
     public function save()

@@ -2,11 +2,15 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PatientResource\Pages;
+use App\Filament\Resources\PatientResource\RelationManagers\AppointmentsRelationManager;
+use App\Filament\Resources\PatientResource\RelationManagers\VisitsRelationManager;
 use App\Models\Patient;
+use App\Models\Visit;
+use App\Models\Appointment;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
@@ -18,6 +22,10 @@ class PatientResource extends Resource
 {
     protected static ?string $model = Patient::class;
 
+    public static function getNavigationIcon(): string
+    {
+        return 'heroicon-o-user'; // Example icon for a patient (user icon)
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -73,8 +81,8 @@ class PatientResource extends Resource
                 TextColumn::make('full_name')
                     ->label('Full Name')
                     ->getStateUsing(function (Patient $record) {
-                        return $record->full_name;
-                    }) // Use accessor to get the full name
+                        return $record->first_name . ' ' . $record->last_name;
+                    })
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('last_name')->label('Last Name'),
@@ -83,23 +91,21 @@ class PatientResource extends Resource
                 TextColumn::make('address')->label('Address'),
                 TextColumn::make('phone_number')->label('Phone Number'),
             ])
-            ->filters([
-                // You can define filters here if needed
-            ])
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
+    // Define relations to show tables for visits and appointments
     public static function getRelations(): array
     {
         return [
-            // Add related resources if any
+            VisitsRelationManager::class,
+            AppointmentsRelationManager::class,
         ];
     }
 

@@ -1,30 +1,55 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Visit extends Model
 {
-    protected $table = 'visit';
+    use HasFactory;
 
+    protected $table = 'visit';
     protected $fillable = ['patient_id', 'appointment_id', 'visit_date', 'notes', 'diagnosis', 'follow_up_date'];
 
-    // Define relationships
+    // Relationship with Patient
     public function patient()
     {
         return $this->belongsTo(Patient::class);
     }
+
+    // Relationship with prescriptions
     public function prescriptions()
     {
-        // The relationship is with the 'prescription' table, not 'prescriptions'
         return $this->hasMany(Prescription::class, 'visit_id');
     }
 
+    // Relationship with Appointment
     public function appointment()
     {
         return $this->belongsTo(Appointment::class);
     }
-    use HasFactory;
+
+    // Cache Visits for a specific patient
+    public static function getVisitsForPatient($patientId)
+    {
+        return Cache::remember("visits_for_patient_{$patientId}", 28800, function () use ($patientId) {
+            return Visit::where('patient_id', $patientId)->get();
+        });
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($visit) {
+            Cache::forget("visits_for_patient_{$visit->patient_id}");
+        });
+
+        static::updated(function ($visit) {
+            Cache::forget("visits_for_patient_{$visit->patient_id}");
+        });
+
+        static::deleted(function ($visit) {
+            Cache::forget("visits_for_patient_{$visit->patient_id}");
+        });
+    }
 }

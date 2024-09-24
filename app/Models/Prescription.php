@@ -8,11 +8,8 @@ class Prescription extends Model
 {
     use HasFactory;
 
-    protected $table = 'prescription'; // Ensure that the correct table name is used
-
-    protected $fillable = [
-        'medicament_num_enr', 'dosage_instructions', 'quantity', 'visit_id',
-    ];
+    protected $table = 'prescription';
+    protected $fillable = ['medicament_num_enr', 'dosage_instructions', 'quantity', 'visit_id'];
 
     public function visit()
     {

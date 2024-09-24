@@ -22,10 +22,7 @@ class PatientResource extends Resource
 {
     protected static ?string $model = Patient::class;
 
-    public static function getNavigationIcon(): string
-    {
-        return 'heroicon-o-user'; // Example icon for a patient (user icon)
-    }
+
     public static function form(Form $form): Form
     {
         return $form

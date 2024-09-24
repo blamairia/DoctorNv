@@ -17,7 +17,7 @@ class AppointmentResource extends Resource
 {
     protected static ?string $model = Appointment::class;
 
-
+    protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
     public static function form(Form $form): Form
     {
@@ -51,6 +51,7 @@ class AppointmentResource extends Resource
                 TextColumn::make('appointment_date')->label('Date')->dateTime(),
             ]);
     }
+
 
     public static function getPages(): array
     {

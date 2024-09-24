@@ -71,7 +71,13 @@ class PatientResource extends Resource
                     ->label('Medical History')
                     ->nullable(),
             ]);
+
     }
+    public static function getRecord($recordId)
+{
+    return Patient::with(['appointments', 'visits'])->find($recordId);
+}
+
 
     public static function table(Table $table): Table
     {

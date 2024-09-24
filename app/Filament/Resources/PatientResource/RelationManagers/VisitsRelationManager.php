@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources\PatientResource\RelationManagers;
 
 use Filament\Resources\RelationManagers\RelationManager;
@@ -9,35 +8,19 @@ use Filament\Tables\Columns\TextColumn;
 
 class VisitsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'visits';
+    protected static string $relationship = 'visits'; // The relationship defined in your Patient model
 
-    // Remove static from this method
-    public function table(Table $table): Table
+    public  function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('visit_date')
-                    ->label('Visit Date')
-                    ->dateTime()
-                    ->url(fn ($record) => url("/admin/visits/{$record->id}/edit"))
-                    ->openUrlInNewTab(false),
-                TextColumn::make('notes')
-                    ->label('Notes'),
-                TextColumn::make('diagnosis')
-                    ->label('Diagnosis'),
-            ])
-            ->filters([
-                // You can add filters if necessary
-            ])
-            ->headerActions([
-                // Add any table header actions here
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                TextColumn::make('visit_date')->label('Visit Date')->sortable(),
+                TextColumn::make('notes')->label('Notes'),
             ]);
+            // Limit the number of records displayed per page
+    }
+    public static function getEagerRelations(): array
+    {
+        return ['patient'];  // Eager load the patient relationship
     }
 }

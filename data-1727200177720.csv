@@ -1,0 +1,6 @@
+"QUERY PLAN"
+"Seq Scan on visit  (cost=0.00..1.06 rows=1 width=65) (actual time=0.013..0.013 rows=0 loops=1)"
+"  Filter: ((visit_date >= '2023-01-01 00:00:00'::timestamp without time zone) AND (visit_date <= '2023-12-31 00:00:00'::timestamp without time zone) AND (patient_id = 1) AND (appointment_id = 2))"
+"  Rows Removed by Filter: 3"
+"Planning Time: 0.430 ms"
+"Execution Time: 0.031 ms"

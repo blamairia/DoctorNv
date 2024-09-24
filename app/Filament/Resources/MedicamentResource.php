@@ -16,10 +16,7 @@ class MedicamentResource extends Resource
 {
     protected static ?string $model = Medicament::class;
 
-    public static function getNavigationIcon(): string
-    {
-        return 'tabler-pill'; // Example icon for a medicament (you can choose a pill or related icon)
-    }
+
     public static function form(Form $form): Form
     {
         return $form

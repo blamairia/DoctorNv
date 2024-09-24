@@ -25,10 +25,7 @@ use Illuminate\Support\Facades\Request;
 class VisitResource extends Resource
 {
     protected static ?string $model = Visit::class;
-    public static function getNavigationIcon(): string
-    {
-        return 'iconpark-appointment-o'; // Example icon for a medicament (you can choose a pill or related icon)
-    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -115,7 +112,23 @@ class VisitResource extends Resource
                 TextColumn::make('patient.full_name')->label('Patient'),
                 TextColumn::make('visit_date')->label('Visit Date')->dateTime(),
             ])
-            ->filters([])
+            ->filters([
+
+                 // Add a basic search filter for patient name
+            Tables\Filters\Filter::make('patient_name')
+            ->form([
+                Forms\Components\TextInput::make('patient_name')
+                    ->label('Search by Patient Name')
+                    ->placeholder('Enter patient name'),
+            ])
+            ->query(function (Builder $query, array $data) {
+                if ($data['patient_name']) {
+                    $query->whereHas('patient', function (Builder $patientQuery) use ($data) {
+                        $patientQuery->whereRaw("LOWER(CONCAT(first_name, ' ', last_name)) LIKE ?", ['%' . strtolower($data['patient_name']) . '%']);
+                    });
+                }
+            }),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

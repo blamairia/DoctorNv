@@ -16,7 +16,11 @@ class AppointmentsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('appointment_date')->label('Appointment Date')->dateTime(),
                 TextColumn::make('reason')->label('Reason'),
-            ])
-            ->filters([]);
+            ]);
+
+    }
+    public static function getEagerRelations(): array
+    {
+        return ['patient'];  // Eager load the patient relationship
     }
 }

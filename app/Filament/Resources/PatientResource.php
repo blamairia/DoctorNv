@@ -1,12 +1,11 @@
 <?php
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PatientResource\Pages;
 use App\Filament\Resources\PatientResource\RelationManagers\AppointmentsRelationManager;
 use App\Filament\Resources\PatientResource\RelationManagers\VisitsRelationManager;
 use App\Models\Patient;
-use App\Models\Visit;
-use App\Models\Appointment;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -21,7 +20,6 @@ use Filament\Forms\Components\Select;
 class PatientResource extends Resource
 {
     protected static ?string $model = Patient::class;
-
 
     public static function form(Form $form): Form
     {
@@ -68,13 +66,12 @@ class PatientResource extends Resource
                     ->label('Medical History')
                     ->nullable(),
             ]);
-
     }
-    public static function getRecord($recordId)
-{
-    return Patient::with(['appointments', 'visits'])->find($recordId);
-}
 
+    public static function getRecord($recordId)
+    {
+        return Patient::with(['appointments', 'visits'])->find($recordId);
+    }
 
     public static function table(Table $table): Table
     {
@@ -83,12 +80,12 @@ class PatientResource extends Resource
                 TextColumn::make('first_name')->label('First Name'),
                 TextColumn::make('full_name')
                     ->label('Full Name')
-                    ->getStateUsing(function (Patient $record) {
-                        return $record->first_name . ' ' . $record->last_name;
-                    })
+                    ->getStateUsing(fn (Patient $record) => "{$record->first_name} {$record->last_name}")
                     ->sortable()
-                    ->searchable(),
-                TextColumn::make('last_name')->label('Last Name'),
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    }),
                 TextColumn::make('date_of_birth')->label('Date of Birth')->date(),
                 TextColumn::make('gender')->label('Gender'),
                 TextColumn::make('address')->label('Address'),
@@ -103,7 +100,6 @@ class PatientResource extends Resource
             ]);
     }
 
-    // Define relations to show tables for visits and appointments
     public static function getRelations(): array
     {
         return [

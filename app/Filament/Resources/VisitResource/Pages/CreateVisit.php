@@ -41,31 +41,7 @@ class CreateVisit extends CreateRecord
                 ])
                 ->button(),
 
-            Action::make('editPatient')
-                ->label('Edit Patient')
-                ->modalHeading('Edit Patient')
-                ->action(function (array $data) {
-                    $patient = Patient::find($this->data['patient_id']);
-                    if ($patient) {
-                        $patient->update($data);
-                    }
-                })
-                ->form(function () {
-                    $patient = Patient::find($this->data['patient_id']);
-                    return [
-                        TextInput::make('first_name')->default($patient->first_name)->required(),
-                        TextInput::make('last_name')->default($patient->last_name)->required(),
-                        DatePicker::make('date_of_birth')->default($patient->date_of_birth)->required(),
-                        Select::make('gender')
-                            ->options(['Male' => 'Male', 'Female' => 'Female'])
-                            ->default($patient->gender)
-                            ->required(),
-                        TextInput::make('address')->default($patient->address)->required(),
-                        TextInput::make('phone_number')->default($patient->phone_number)->required(),
-                        TextInput::make('email')->default($patient->email)->email(),
-                    ];
-                })
-                ->button(),
+
 
             // Add Appointment Modal
             Action::make('addAppointment')
@@ -84,50 +60,31 @@ class CreateVisit extends CreateRecord
                     Appointment::create($data);  // Logic to create a new appointment
                 }),
 
-            // Open modal when follow-up date is selected
-            Action::make('editAppointment')
-                ->label('Edit Appointment')
-                ->modalHeading('Edit Appointment')
-                ->action(function (array $data) {
-                    $appointment = Appointment::find($this->data['appointment_id']);
-                    if ($appointment) {
-                        $appointment->update($data);
-                    }
-                })
-                ->form(function () {
-                    $appointment = Appointment::find($this->data['appointment_id']);
-                    return [
-                        Select::make('patient_id')
-                            ->label('Patient')
-                            ->relationship('patient', 'full_name')
-                            ->default($appointment->patient_id)
-                            ->required(),
-                        DateTimePicker::make('appointment_date')
-                            ->default($appointment->appointment_date)
-                            ->required(),
-                        Textarea::make('reason')
-                            ->default($appointment->reason)
-                            ->nullable(),
-                    ];
-                })
-                ->button(),
+
         ];
     }
     protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        // Prepopulate the form with patient_id and visit_date if passed in the URL
-        return array_merge($data, [
-            'patient_id' => Request::query('patient_id'), // Preselect the patient
-            'visit_date' => Request::query('visit_date', now()), // Prepopulate with current time if not provided
-        ]);
-    }
+        {
+            // Ensure patient_id is set and passed, and default visit_date is handled
+            $data['patient_id'] = $data['patient_id'] ?? Request::query('patient_id');
+            $data['visit_date'] = $data['visit_date'] ?? Request::query('visit_date', now());
 
+            return $data;
+        }
     public function save()
     {
+         // Ensure that the patient ID is included
+         if (!isset($this->data['patient_id']) || !$this->data['patient_id']) {
+            $this->notify('danger', 'Patient is required.');
+            return;
+        }
+
+
         // Open modal when follow-up date is present
         if ($this->data['appointment_modal']) {
             $this->dispatchBrowserEvent('open-add-appointment-modal');
         }
         parent::save();
     }
+
 }

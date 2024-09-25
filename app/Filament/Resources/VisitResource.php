@@ -17,6 +17,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Illuminate\Support\Facades\Request;
+use Malzariey\FilamentDaterangepickerFilter\Filters\DateRangeFilter;
 
 class VisitResource extends Resource
 {
@@ -24,6 +26,7 @@ class VisitResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $patientId = Request::input('patient_id');
         return $form
             ->schema([
                 Select::make('patient_id')
@@ -36,6 +39,7 @@ class VisitResource extends Resource
                         ];
                     });
                 })
+                ->default($patientId)
                 ->required()
                 ->reactive()  // Ensures the next field updates when this field changes
                 ->afterStateUpdated(function (callable $set) {
@@ -150,7 +154,34 @@ class VisitResource extends Resource
                     ->falseColor('danger')
                     ->columnSpan(1), // Smaller column span for the Boolean field
             ])
-            ->filters([])
+            ->filters([
+                DateRangeFilter::make('visit_date')
+                    ->label('Visit Date Range')
+                    ->ranges([
+                        'Today' => [now()->startOfDay(), now()->endOfDay()],
+                        'Last 7 Days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
+                        'This Month' => [now()->startOfMonth(), now()->endOfMonth()],
+                        'Last Month' => [
+                            now()->subMonthNoOverflow()->startOfMonth(),
+                            now()->subMonthNoOverflow()->endOfMonth(),
+                        ],
+                    ])
+                    ->startDate(now()->startOfMonth())  // Default start date
+                    ->endDate(now()->endOfMonth())      // Default end date
+                    ->minDate(now()->subYear())         // Set minimum date to one year ago
+                    ->maxDate(now())                    // Set maximum date to today
+                    ->firstDayOfWeek(1)                 // Set Monday as the first day of the week
+                    ->timePicker()                      // Enable time picker
+                    ->timePicker24()                    // Use 24-hour format for time
+                    ->timePickerIncrement(15)           // Increment time picker by 15 minutes
+                    ->linkedCalendars()                 // Ensure linked calendars are enabled
+                    ->alwaysShowCalendar()              // Always show the calendar view
+                    ->separator(' to ')                 // Custom separator for date range
+                    ->autoApply()                       // Auto apply changes without an "Apply" button
+                    ->withIndicator()                   // Show filter active indicator
+                    ->disableCustomRange()              // Disable custom date range selection
+                    ->useRangeLabels(),                 // Use predefined range labels
+            ])
             ->actions([Tables\Actions\EditAction::make()])
             ->bulkActions([Tables\Actions\DeleteBulkAction::make()]);
     }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources\VisitResource\Pages;
 
 use App\Filament\Resources\VisitResource;
@@ -41,8 +40,6 @@ class CreateVisit extends CreateRecord
                 ])
                 ->button(),
 
-
-
             // Add Appointment Modal
             Action::make('addAppointment')
                 ->label('Add Appointment')
@@ -52,33 +49,36 @@ class CreateVisit extends CreateRecord
                 ->form([
                     Select::make('patient_id')
                         ->label('Patient')
-                        ->options(Patient::all()->pluck('first_name', 'id')) // Use first and last name as necessary
+                        ->options(Patient::all()->mapWithKeys(function ($patient) {
+                            return [$patient->id => $patient->first_name . ' ' . $patient->last_name];
+                        }))
+                        ->searchable() // Enable searching
+                        ->default(Request::query('patient_id')) // Preselect patient if provided in the query
                         ->required(),
-                    DateTimePicker::make('appointment_date')->label('Appointment Date')->required(),
+                    DateTimePicker::make('appointment_date')->label('Appointment Date')->required()->default(now()),
                 ])
                 ->action(function (array $data) {
                     Appointment::create($data);  // Logic to create a new appointment
                 }),
-
-
         ];
     }
-    protected function mutateFormDataBeforeCreate(array $data): array
-        {
-            // Ensure patient_id is set and passed, and default visit_date is handled
-            $data['patient_id'] = $data['patient_id'] ?? Request::query('patient_id');
-            $data['visit_date'] = $data['visit_date'] ?? Request::query('visit_date', now());
 
-            return $data;
-        }
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // Ensure patient_id is set and passed, and default visit_date is handled
+        $data['patient_id'] = $data['patient_id'] ?? Request::query('patient_id');
+        $data['visit_date'] = $data['visit_date'] ?? Request::query('visit_date', now());
+
+        return $data;
+    }
+
     public function save()
     {
-         // Ensure that the patient ID is included
-         if (!isset($this->data['patient_id']) || !$this->data['patient_id']) {
+        // Ensure that the patient ID is included
+        if (!isset($this->data['patient_id']) || !$this->data['patient_id']) {
             $this->notify('danger', 'Patient is required.');
             return;
         }
-
 
         // Open modal when follow-up date is present
         if ($this->data['appointment_modal']) {
@@ -86,5 +86,4 @@ class CreateVisit extends CreateRecord
         }
         parent::save();
     }
-
 }

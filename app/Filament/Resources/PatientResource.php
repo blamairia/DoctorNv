@@ -77,7 +77,7 @@ class PatientResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('first_name')->label('First Name'),
+                TextColumn::make('last_name')->label('First Name'),
                 TextColumn::make('full_name')
                     ->label('Full Name')
                     ->getStateUsing(fn (Patient $record) => "{$record->first_name} {$record->last_name}")
@@ -94,7 +94,7 @@ class PatientResource extends Resource
             ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
-            ])
+            ])->defaultSort('created_at', 'desc')
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);

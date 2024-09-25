@@ -5,6 +5,9 @@ namespace App\Filament\Resources\VisitResource\Pages;
 
 use App\Filament\Resources\VisitResource;
 use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DateTimePicker;
@@ -21,6 +24,25 @@ class EditVisit extends EditRecord
         return [
             Actions\DeleteAction::make(),
 
+            Action::make('addPatient')
+                ->label('Add Patient')
+                ->modalHeading('Add Patient')
+                ->action(function (array $data) {
+                    $patient = Patient::create($data);
+                    $this->fillForm(['patient_id' => $patient->id]); // Auto-select the newly created patient
+                })
+                ->form([
+                    TextInput::make('first_name')->required(),
+                    TextInput::make('last_name')->required(),
+                    DatePicker::make('date_of_birth')->required(),
+                    Select::make('gender')
+                        ->options(['Male' => 'Male', 'Female' => 'Female'])
+                        ->required(),
+                    TextInput::make('address')->required(),
+                    TextInput::make('phone_number')->required(),
+                    TextInput::make('email')->email(),
+                ])
+                ->button(),
             // New Add Appointment Button
             Actions\Action::make('addAppointment')
                 ->label('Add Appointment')

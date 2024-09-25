@@ -68,6 +68,7 @@ public static function shouldRegisterNavigation(): bool
             Tables\Columns\TextColumn::make('dosage_instructions')->label('Dosage Instructions'),
         ])
         ->filters([])
+        ->defaultSort('updated_at', 'desc')
         ->actions([
             Tables\Actions\EditAction::make(),
         ])

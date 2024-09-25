@@ -116,13 +116,45 @@ class VisitResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('patient.full_name')->label('Patient'),
-                Tables\Columns\TextColumn::make('visit_date')->label('Visit Date')->date(),
+                Tables\Columns\TextColumn::make('patient.full_name')
+                    ->label('Patient')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('visit_date')
+                    ->label('Visit Date')
+                    ->date()
+                    ->sortable(),
+
+                // Add the 'diagnosis' field with truncation and a wider column span
+                Tables\Columns\TextColumn::make('diagnosis')
+                    ->label('Diagnosis')
+                    ->sortable()
+                    ->searchable()
+                    ->wrap() // Ensures text wraps if needed
+                    ->limit(50) // Limits the displayed text to 50 characters
+                    ->tooltip(function ($record) {
+                        return $record->diagnosis; // Shows full text on hover
+                    })
+                    ->columnSpan(3), // Adjust this to make the column wider
+
+                // Checkbox for prescriptions, making it smaller in width
+                Tables\Columns\BooleanColumn::make('has_prescriptions')
+                    ->label('Has Prescriptions')
+                    ->getStateUsing(function ($record) {
+                        return $record->prescriptions()->exists();
+                    })
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->columnSpan(1), // Smaller column span for the Boolean field
             ])
             ->filters([])
             ->actions([Tables\Actions\EditAction::make()])
             ->bulkActions([Tables\Actions\DeleteBulkAction::make()]);
     }
+
 
     public static function getPages(): array
     {

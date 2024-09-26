@@ -10,7 +10,17 @@ class Visit extends Model
     use HasFactory;
 
     protected $table = 'visit';
-    protected $fillable = ['patient_id', 'appointment_id', 'visit_date', 'notes', 'diagnosis', 'follow_up_date'];
+    protected $fillable = [
+        'patient_id',
+        'appointment_id',
+        'visit_date',
+        'notes',
+        'diagnosis',
+        'follow_up_date',
+        'blood_work_diagnostics', // New field for blood work diagnostics
+        'mri_scans',              // New field for MRI scans
+        'xray_scans'              // New field for X-ray scans
+    ];
 
     // Relationship with Patient
     public function patient()

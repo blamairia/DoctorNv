@@ -2,6 +2,7 @@
 namespace App\Filament\Resources\VisitResource\Pages;
 
 use App\Filament\Resources\VisitResource;
+use App\Models\Visit;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Pages\Actions\Action;
 use Filament\Forms\Components\TextInput;
@@ -40,27 +41,47 @@ class CreateVisit extends CreateRecord
                 ])
                 ->button(),
 
-            // Add Appointment Modal
-            Action::make('addAppointment')
-                ->label('Add Appointment')
-                ->button()
-                ->modalHeading('Add Appointment')
-                ->modalSubheading('Fill in the details to add a new appointment')
-                ->form([
-                    Select::make('patient_id')
-                        ->label('Patient')
-                        ->options(Patient::all()->mapWithKeys(function ($patient) {
-                            return [$patient->id => $patient->first_name . ' ' . $patient->last_name];
-                        }))
-                        ->searchable() // Enable searching
-                        ->default(Request::query('patient_id')) // Preselect patient if provided in the query
-                        ->required(),
-                    DateTimePicker::make('appointment_date')->label('Appointment Date')->required()->default(now()),
-                ])
-                ->action(function (array $data) {
-                    Appointment::create($data);  // Logic to create a new appointment
-                }),
-        ];
+                Action::make('addAppointment')
+                    ->label('Add Appointment')
+                    ->modalHeading('Add Appointment')
+                    ->modalSubheading('Fill in the details for the appointment')
+                    ->form(function () {
+                        // Use a default or null check
+                        $visit = $this->record ?? new Visit(); // Default to a new Visit if record is null
+
+                        return [
+                            Select::make('patient_id')
+                                ->label('Patient')
+                                ->options(Patient::all()->mapWithKeys(function ($patient) {
+                                    return [$patient->id => "{$patient->first_name} {$patient->last_name}"];
+                                }))
+                                ->default($visit->patient_id ?? null) // Handle null
+                                ->required(),
+
+                            DateTimePicker::make('appointment_date')
+                                ->label('Appointment Date')
+                                ->default($visit->follow_up_date ?? now()) // Default to now if null
+                                ->required(),
+
+                            TextInput::make('reason')
+                                ->label('Reason')
+                                ->nullable()
+                                ->maxLength(255),
+                        ];
+                    })
+                    ->action(function (array $data) {
+                        if (!empty($data['patient_id']) && !empty($data['appointment_date'])) {
+                            Appointment::create($data); // Save the new appointment
+                        } else {
+                            // Handle error: show a notification
+                            \Filament\Notifications\Notification::make()
+                                ->title('Error')
+                                ->body('Please fill in all required fields.')
+                                ->success();
+                        }
+                    }),
+
+                ];
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

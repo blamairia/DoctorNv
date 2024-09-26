@@ -44,7 +44,7 @@ class EditVisit extends EditRecord
                 ])
                 ->button(),
             // New Add Appointment Button
-            Actions\Action::make('addAppointment')
+            Action::make('addAppointment')
                 ->label('Add Appointment')
                 ->modalHeading('Add Appointment')
                 ->modalSubheading('Fill in the details for the appointment')
@@ -54,23 +54,25 @@ class EditVisit extends EditRecord
                         Select::make('patient_id')
                             ->label('Patient')
                             ->options(Patient::all()->mapWithKeys(function ($patient) {
-                                return [$patient->id => $patient->first_name . ' ' . $patient->last_name];
+                                return [$patient->id => "{$patient->first_name} {$patient->last_name}"];
                             }))
                             ->default($visit->patient_id)
-                            ->disabled(),
+                            ->disabled(), // Disable if needed
 
                         DateTimePicker::make('appointment_date')
                             ->label('Appointment Date')
-                            ->default($visit->follow_up_date) // Preselect the follow-up date
+                            ->default($visit->follow_up_date) // Preselect follow-up date
                             ->required(),
-                        Textarea::make('reason')
+
+                            TextInput::make('reason') // Use TextInput instead of Textarea
                             ->label('Reason')
-                            ->nullable(),
+                            ->nullable() // or required() if necessary
+                            ->maxLength(255), // Optionally limit the length
                     ];
                 })
                 ->action(function (array $data) {
                     Appointment::create($data); // Logic to save the new appointment
                 }),
-        ];
+            ];
     }
 }

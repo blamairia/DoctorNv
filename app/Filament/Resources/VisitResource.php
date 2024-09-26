@@ -25,15 +25,15 @@ class VisitResource extends Resource
     protected static ?string $model = Visit::class;
 
     public static function form(Form $form): Form
-    {
-        $patientId = Request::input('patient_id');
-        return $form
-            ->schema([
-                Select::make('patient_id')
+{
+    $patientId = Request::input('patient_id');
+    return $form
+        ->schema([
+            Select::make('patient_id')
                 ->label('Patient')
                 ->searchable()
                 ->options(function () {
-                    return \App\Models\Patient::all()->mapWithKeys(function ($patient) {
+                    return Patient::all()->mapWithKeys(function ($patient) {
                         return [
                             $patient->id => "{$patient->first_name} {$patient->last_name}",
                         ];
@@ -41,80 +41,89 @@ class VisitResource extends Resource
                 })
                 ->default($patientId)
                 ->required()
-                ->reactive()  // Ensures the next field updates when this field changes
+                ->reactive()
                 ->afterStateUpdated(function (callable $set) {
-                    $set('appointment_id', null); // Reset the appointment field when the patient changes
+                    $set('appointment_id', null); // Reset appointment_id when patient changes
                 }),
 
-            Select::make('appointment_id')
+                Select::make('appointment_id')
                 ->label('Appointment')
                 ->options(function (callable $get) {
                     $patientId = $get('patient_id');
                     if ($patientId) {
-                        // Fetch appointments for the selected patient only
-                        return \App\Models\Appointment::where('patient_id', $patientId)
-                            ->pluck('appointment_date', 'id');
+                        return Appointment::where('patient_id', $patientId)
+                            ->get()
+                            ->mapWithKeys(function ($appointment) {
+                                return [
+                                    $appointment->id => "Appointment on {$appointment->appointment_date} - {$appointment->reason}", // Customize as needed
+                                ];
+                            });
                     }
-                    return [];  // No appointments if no patient selected
+                    return []; // Return empty if no patient is selected
                 })
-                ->disabled(fn (callable $get) => !$get('patient_id'))  // Disable until a patient is selected
                 ->required(),
 
 
-                DateTimePicker::make('visit_date')
-                    ->label('Visit Date')
-                    ->default(now())
-                    ->required(),
 
-                Textarea::make('notes')
-                    ->label('Notes')
-                    ->nullable(),
+            DateTimePicker::make('visit_date')
+                ->label('Visit Date')
+                ->required(),
 
-                Textarea::make('diagnosis')
-                    ->label('Diagnosis')
-                    ->nullable(),
+            Textarea::make('notes')
+                ->label('Notes'),
 
-                DatePicker::make('follow_up_date')
-                    ->label('Follow-Up Date')
-                    ->nullable(),
-                     // Add the prescription repeater to the form
-                     Repeater::make('prescriptions')
-                     ->relationship('prescriptions')
-                     ->columnSpan('full') // This ensures the Repeater takes the full width of the form
-                     ->schema([
-                         Grid::make(12) // Adjusting the internal grid to 12 columns to span the full width
-                             ->schema([
-                                 Select::make('medicament_num_enr')
-                                     ->label('Medicament')
-                                     ->options(function () {
-                                         return \App\Models\Medicament::all()->mapWithKeys(function ($medicament) {
-                                             return [
-                                                 $medicament->num_enr => "{$medicament->nom_dci}, {$medicament->nom_com}, {$medicament->dosage} {$medicament->unite}, {$medicament->conditionnement}",
-                                             ];
-                                         });
-                                     })
-                                     ->searchable()
-                                     ->required()
-                                     ->columnSpan(7), // Takes up 8 columns out of 12 (about two-thirds of the width)
+            TextInput::make('diagnosis')
+                ->label('Diagnosis'),
 
-                                 TextInput::make('dosage_instructions')
-                                     ->label('Dosage Instructions')
-                                     ->required()
-                                     ->columnSpan(3), // Takes up 2 columns
+            DatePicker::make('follow_up_date')
+                ->label('Follow-up Date'),
+                 // New fields for diagnostics and imagery
+            Textarea::make('blood_work_diagnostics')
+            ->label('Blood Work Diagnostics')
+            ->placeholder('Enter blood work details...'),
 
-                                 TextInput::make('quantity')
-                                     ->label('Quantity')
-                                     ->numeric()
-                                     ->required()
-                                     ->columnSpan(2), // Takes up 2 columns
-                             ]),
-                     ])
+            Textarea::make('mri_scans')
+                ->label('MRI Scans')
+                ->placeholder('Enter MRI scan details...'),
 
+            Textarea::make('xray_scans')
+                ->label('X-Ray Scans')
+                ->placeholder('Enter X-Ray scan details...'),
+                Repeater::make('prescriptions')
+                ->relationship('prescriptions')
+                ->columnSpan('full') // This ensures the Repeater takes the full width of the form
+                ->schema([
+                    Grid::make(12) // Adjusting the internal grid to 12 columns to span the full width
+                        ->schema([
+                            Select::make('medicament_num_enr')
+                                ->label('Medicament')
+                                ->options(function () {
+                                    return \App\Models\Medicament::all()->mapWithKeys(function ($medicament) {
+                                        return [
+                                            $medicament->num_enr => "{$medicament->nom_dci}, {$medicament->nom_com}, {$medicament->dosage} {$medicament->unite}, {$medicament->conditionnement}",
+                                        ];
+                                    });
+                                })
+                                ->searchable()
+                                ->required()
+                                ->columnSpan(7), // Takes up 8 columns out of 12 (about two-thirds of the width)
 
+                            TextInput::make('dosage_instructions')
+                                ->label('Dosage Instructions')
+                                ->required()
+                                ->columnSpan(3), // Takes up 2 columns
 
-                , // To display each prescription input in columns
-            ]);
-    }
+                            TextInput::make('quantity')
+                                ->label('Quantity')
+                                ->numeric()
+                                ->required()
+                                ->columnSpan(2), // Takes up 2 columns
+                        ]),
+                    ]),
+        ]);
+
+}
+
 
     public static function table(Tables\Table $table): Tables\Table
     {

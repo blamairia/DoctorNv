@@ -17,6 +17,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Tables\Columns\BooleanColumn;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Request;
@@ -87,7 +88,22 @@ class VisitResource extends Resource
             Textarea::make('mri_scans')
                 ->label('MRI Scans')
                 ->placeholder('Enter MRI scan details...'),
+                TextInput::make('payment_total')
+                ->label('Payment Total')
+                ->default(0)
+                ->required(),
 
+            TextInput::make('debt')
+                ->label('Debt')
+                ->default(0)
+                ->required(),
+
+            // Set the payment status field (optional, can be hidden)
+            TextInput::make('payment_status')
+                ->label('Payment Status')
+                ->default(fn ($record) => ($record->debt ?? 0) > 0 ? 'Unpaid' : 'Paid')
+                ->disabled()
+                ->hidden(),
             Textarea::make('xray_scans')
                 ->label('X-Ray Scans')
                 ->placeholder('Enter X-Ray scan details...'),
@@ -158,6 +174,15 @@ class VisitResource extends Resource
                         return $record->diagnosis; // Shows full text on hover
                     })
                     ->columnSpan(3), // Adjust this to make the column wider
+                    BooleanColumn::make('payment_status')
+                            ->label('Payment Status')
+                            ->getStateUsing(function ($record) {
+                                return $record->debt > 0; // True if unpaid, false if paid
+                            })
+                            ->trueIcon('heroicon-o-x-circle') // Unpaid icon
+                            ->falseIcon('heroicon-o-check-circle') // Paid icon
+                            ->trueColor('danger')
+                            ->falseColor('success'),
 
                 // Checkbox for prescriptions, making it smaller in width
                 Tables\Columns\BooleanColumn::make('has_prescriptions')
@@ -169,7 +194,18 @@ class VisitResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger')
-                    ->columnSpan(1), // Smaller column span for the Boolean field
+                    ->columnSpan(1),
+                    TextColumn::make('payment_total')
+                ->label('Total Paid')
+                ->sortable()
+                ->formatStateUsing(fn ($state) => number_format($state ?? 0, 2)),
+
+            // Debt Column
+            TextColumn::make('debt')
+                ->label('Debt')
+                ->sortable()
+                ->formatStateUsing(fn ($state) => number_format($state ?? 0, 2)),
+        // Smaller column span for the Boolean field
             ])
             ->filters([
                 DateRangeFilter::make('visit_date')

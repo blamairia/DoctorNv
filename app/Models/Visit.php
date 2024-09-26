@@ -19,7 +19,11 @@ class Visit extends Model
         'follow_up_date',
         'blood_work_diagnostics', // New field for blood work diagnostics
         'mri_scans',              // New field for MRI scans
-        'xray_scans'              // New field for X-ray scans
+        'xray_scans',
+        'payment_total',     // New field for total payment
+        'payment_status',    // New field for payment status
+        'debt',
+                  // New field for X-ray scans
     ];
 
     // Relationship with Patient
@@ -27,6 +31,11 @@ class Visit extends Model
     {
         return $this->belongsTo(Patient::class);
     }
+    public function getPaymentStatusAttribute()
+        {
+            return $this->debt > 0 ? 'Unpaid' : 'Paid';
+        }
+
 
     // Relationship with prescriptions
     public function prescriptions()

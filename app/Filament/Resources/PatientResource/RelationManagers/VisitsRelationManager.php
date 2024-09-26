@@ -7,6 +7,7 @@ namespace App\Filament\Resources\PatientResource\RelationManagers;
 use App\Filament\Resources\VisitResource;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
+use Filament\Tables\Columns\BooleanColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\DateTimeColumn;
@@ -62,16 +63,38 @@ class VisitsRelationManager extends RelationManager
                             return $record->reason; // Shows full text on hover
                         })
                         ->columnSpan(3),
-             Tables\Columns\BooleanColumn::make('has_prescriptions')
-                    ->label('Has Prescriptions')
-                    ->getStateUsing(function ($record) {
-                        return $record->prescriptions()->exists();
-                    })
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('danger')
-                    ->columnSpan(1),
+
+                        BooleanColumn::make('payment_status')
+                            ->label('Payment Status')
+                            ->getStateUsing(function ($record) {
+                                return $record->debt > 0; // True if unpaid, false if paid
+                            })
+                            ->trueIcon('heroicon-o-x-circle') // Unpaid icon
+                            ->falseIcon('heroicon-o-check-circle') // Paid icon
+                            ->trueColor('danger')
+                            ->falseColor('success'),
+
+                // Checkbox for prescriptions, making it smaller in width
+                    Tables\Columns\BooleanColumn::make('has_prescriptions')
+                        ->label('Has Prescriptions')
+                        ->getStateUsing(function ($record) {
+                            return $record->prescriptions()->exists();
+                        })
+                        ->trueIcon('heroicon-o-check-circle')
+                        ->falseIcon('heroicon-o-x-circle')
+                        ->trueColor('success')
+                        ->falseColor('danger')
+                        ->columnSpan(1),
+                    TextColumn::make('payment_total')
+                        ->label('Total Paid')
+                        ->sortable()
+                        ->formatStateUsing(fn ($state) => number_format($state ?? 0, 2)),
+
+                    // Debt Column
+                    TextColumn::make('debt')
+                        ->label('Debt')
+                        ->sortable()
+                        ->formatStateUsing(fn ($state) => number_format($state ?? 0, 2)),
 
 
         ];

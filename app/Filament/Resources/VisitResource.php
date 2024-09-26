@@ -17,6 +17,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Request;
 use Malzariey\FilamentDaterangepickerFilter\Filters\DateRangeFilter;
 
@@ -129,10 +131,16 @@ class VisitResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('patient.full_name')
-                    ->label('Patient')
-                    ->sortable()
-                    ->searchable(),
+                TextColumn::make('full_name')
+                ->label('Patient Name')
+                ->getStateUsing(fn ($record) => "{$record->patient->first_name} {$record->patient->last_name}")
+                ->searchable(query: function (Builder $query, string $search): Builder {
+                    return $query->whereHas('patient', function (Builder $subQuery) use ($search) {
+                        $subQuery->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+                })
+                ->sortable(),
 
                 Tables\Columns\TextColumn::make('visit_date')
                     ->label('Visit Date')

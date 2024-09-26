@@ -175,7 +175,7 @@ class VisitResource extends Resource
                 DateRangeFilter::make('visit_date')
                     ->label('Visit Date Range')
                     ->ranges([
-                        'Today' => [now()->startOfDay(), now()->endOfDay()],
+                        'Today' => [now()->toDateString(), now()->toDateString()],
                         'Last 7 Days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
                         'This Month' => [now()->startOfMonth(), now()->endOfMonth()],
                         'Last Month' => [
@@ -183,6 +183,7 @@ class VisitResource extends Resource
                             now()->subMonthNoOverflow()->endOfMonth(),
                         ],
                     ])
+
                     ->startDate(now()->startOfMonth())  // Default start date
                     ->endDate(now()->endOfMonth())      // Default end date
                     ->minDate(now()->subYear())         // Set minimum date to one year ago

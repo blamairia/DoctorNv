@@ -1,7 +1,6 @@
 <?php
-namespace App\Filament\Resources;
-use Filament\Tables\Columns\BooleanColumn;
 
+namespace App\Filament\Resources;
 
 use App\Filament\Resources\MedicamentResource\Pages;
 use App\Models\Medicament;
@@ -11,38 +10,45 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BooleanColumn;
 
 class MedicamentResource extends Resource
 {
     protected static ?string $model = Medicament::class;
-
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nom_com')
-                    ->label('Commercial Name')
+                    ->label('Nom Commercial')
                     ->required(),
+
                 Forms\Components\TextInput::make('nom_dci')
-                    ->label('DCI Name')
+                    ->label('Nom DCI')
                     ->required(),
+
                 Forms\Components\TextInput::make('dosage')
                     ->label('Dosage')
                     ->required(),
+
                 Forms\Components\TextInput::make('unite')
-                    ->label('Unit')
+                    ->label('Unité')
                     ->required(),
+
                 Forms\Components\TextInput::make('conditionnement')
-                    ->label('Conditioning')
+                    ->label('Conditionnement')
                     ->required(),
+
                 Forms\Components\Checkbox::make('remboursable')
-                    ->label('Refundable'),
+                    ->label('Remboursable'),
+
                 Forms\Components\DatePicker::make('date_remboursement')
-                    ->label('Refund Date')
+                    ->label('Date de Remboursement')
                     ->nullable(),
+
                 Forms\Components\TextInput::make('tarif_ref')
-                    ->label('Reference Price')
+                    ->label('Tarif de Référence')
                     ->required(),
             ]);
     }
@@ -51,15 +57,41 @@ class MedicamentResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('nom_com')->label('Commercial Name'),
-                TextColumn::make('nom_dci')->label('DCI Name'),
-                TextColumn::make('dosage')->label('Dosage'),
-                TextColumn::make('unite')->label('Unit'),
-                TextColumn::make('conditionnement')->label('Packaging'),
-                BooleanColumn::make('remboursable')->label('Reimbursable'),
-                BooleanColumn::make('hopital')->label('For Hospital Use'),
-                BooleanColumn::make('secteur_sanitaire')->label('Public Health Sector'),
-                BooleanColumn::make('officine')->label('For Pharmacies'),
+                TextColumn::make('nom_com')
+                    ->label('Nom Commercial')
+                    ->searchable(),
+
+                TextColumn::make('nom_dci')
+                    ->label('Nom DCI')
+                    ->searchable(),
+
+                TextColumn::make('dosage')
+                    ->label('Dosage'),
+
+                TextColumn::make('unite')
+                    ->label('Unité'),
+
+                TextColumn::make('conditionnement')
+                    ->label('Conditionnement'),
+
+                BooleanColumn::make('remboursable')
+                    ->label('Remboursable'),
+
+                BooleanColumn::make('hopital')
+                    ->label('Utilisation Hospitalière'),
+
+                BooleanColumn::make('secteur_sanitaire')
+                    ->label('Secteur Sanitaire Public'),
+
+                BooleanColumn::make('officine')
+                    ->label('Utilisation en Pharmacie'),
+            ])
+            ->filters([]) // Add filters if necessary
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 

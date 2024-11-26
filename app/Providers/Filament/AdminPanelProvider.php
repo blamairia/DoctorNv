@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\PatientWidget;
+use App\Filament\Widgets\PaymentsOverview;
+use App\Filament\Widgets\VisitsOverview;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -40,6 +42,9 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 PatientWidget::class,
+                PaymentsOverview::class,
+                VisitsOverview::class,
+               
 
             ])
             ->middleware([

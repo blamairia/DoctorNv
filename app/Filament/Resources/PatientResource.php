@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PatientResource\Pages;
@@ -16,6 +17,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
+use Malzariey\FilamentDaterangepickerFilter\Filters\DateRangeFilter;
+use Carbon\Carbon;
 
 class PatientResource extends Resource
 {
@@ -26,34 +29,34 @@ class PatientResource extends Resource
         return $form
             ->schema([
                 TextInput::make('first_name')
-                    ->label('First Name')
+                    ->label('Prénom')
                     ->required()
                     ->maxLength(100),
 
                 TextInput::make('last_name')
-                    ->label('Last Name')
+                    ->label('Nom de Famille')
                     ->required()
                     ->maxLength(100),
 
                 DatePicker::make('date_of_birth')
-                    ->label('Date of Birth')
+                    ->label('Date de Naissance')
                     ->required(),
 
                 Select::make('gender')
-                    ->label('Gender')
+                    ->label('Genre')
                     ->options([
-                        'Male' => 'Male',
-                        'Female' => 'Female',
+                        'Male' => 'Homme',
+                        'Female' => 'Femme',
                     ])
                     ->required(),
 
                 TextInput::make('address')
-                    ->label('Address')
+                    ->label('Adresse')
                     ->required()
                     ->maxLength(255),
 
                 TextInput::make('phone_number')
-                    ->label('Phone Number')
+                    ->label('Numéro de Téléphone')
                     ->required()
                     ->maxLength(15),
 
@@ -63,38 +66,77 @@ class PatientResource extends Resource
                     ->nullable(),
 
                 Textarea::make('medical_history')
-                    ->label('Medical History')
+                    ->label('Historique Médical')
                     ->nullable(),
             ]);
-    }
-
-    public static function getRecord($recordId)
-    {
-        return Patient::with(['appointments', 'visits'])->find($recordId);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('last_name')->label('First Name'),
                 TextColumn::make('full_name')
-                    ->label('Full Name')
+                    ->label('Nom Complet')
                     ->getStateUsing(fn (Patient $record) => "{$record->first_name} {$record->last_name}")
                     ->sortable()
                     ->searchable(query: function ($query, string $search) {
                         return $query->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     }),
-                TextColumn::make('date_of_birth')->label('Date of Birth')->date(),
-                TextColumn::make('gender')->label('Gender'),
-                TextColumn::make('address')->label('Address'),
-                TextColumn::make('phone_number')->label('Phone Number'),
+
+                
+
+                    TextColumn::make('last_visit')
+                    ->label('Dernière Visite')
+                    ->getStateUsing(fn (Patient $record) => 
+                        $record->visits()->latest('visit_date')->value('visit_date')
+                            ? Carbon::parse($record->visits()->latest('visit_date')->value('visit_date'))->format('d/m/Y')
+                            : '❌ Pas de visites'
+                    )
+                    ->sortable(),
+                    
+
+                TextColumn::make('created_at')
+                    ->label('Date de D/ajoute')
+                    ->sortable()
+                    ->date(),
+                
+
+                TextColumn::make('gender')
+                    ->label('Genre'),
+
+                TextColumn::make('address')
+                    ->label('Adresse'),
+                TextColumn::make('date_of_birth')
+                    ->label('Date de Naissance')
+                    ->sortable()
+                    ->date(),
+                
+
+                TextColumn::make('phone_number')
+                    ->label('Numéro de Téléphone'),
             ])
-            ->filters([])
+            ->filters([
+                DateRangeFilter::make('created_at')
+                    ->label('Période de Création')
+                    ->startDate(now()->startOfMonth())
+                    ->endDate(now()->endOfMonth())
+                    ->minDate(now()->subYear())
+                    ->maxDate(now())
+                    ->firstDayOfWeek(1)
+                    ->timePicker()
+                    ->timePicker24()
+                    ->timePickerIncrement(15)
+                    ->linkedCalendars()
+                    ->alwaysShowCalendar()
+                    ->separator(' à ')
+                    ->autoApply()
+                    ->useRangeLabels(),
+            ])
+            ->defaultSort('created_at', 'desc')
             ->actions([
                 Tables\Actions\EditAction::make(),
-            ])->defaultSort('created_at', 'desc')
+            ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);

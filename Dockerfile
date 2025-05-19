@@ -1,40 +1,51 @@
-# Dockerfile
+# ── stage 1: build the vendor dir ──────────────────────────────────────
+FROM composer:2 AS vendor
 
-# 1. Base image (Debian Bullseye, PHP 8.2 + correct OpenSSL)
+WORKDIR /app
+
+# only copy composer files first so we cache this layer
+COPY composer.json composer.lock ./
+
+# install & optimize autoloader (no dev)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# ── stage 2: runtime image ────────────────────────────────────────────
 FROM php:8.2-fpm-bullseye
 
-# 2. Install system deps & PHP extensions (including intl)
+# install Linux deps + compile PHP extensions
 RUN apt-get update \
- && apt-get install -y \
+ && apt-get install -y --no-install-recommends \
       libpq-dev \
       zlib1g-dev \
       libzip-dev \
       libicu-dev \
+      git \
+      unzip \
  && docker-php-ext-install \
       pdo_pgsql \
       zip \
-      intl
+      intl \
+ && rm -rf /var/lib/apt/lists/*
 
-# 3. Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# 4. Set working directory
 WORKDIR /var/www/html
 
-# 5. Copy composer files first (cache layer)
-COPY composer.json composer.lock ./
+# copy in the baked vendor/ (with PSR-4 maps)
+COPY --from=vendor /app/vendor ./vendor
 
-# 6. Install PHP deps
-
-# 7. Copy the rest of your app
+# copy the rest of your application
 COPY . .
 
-# after COPY . .
-RUN composer dump-autoload --optimize
+# clear & cache everything so Laravel (and Filament) see your new widget
+RUN chown -R www-data:www-data storage bootstrap/cache \
+ && chmod -R 775 storage bootstrap/cache \
+ && php artisan key:generate --ansi \
+ && php artisan config:cache \
+ && php artisan route:cache \
+ && php artisan view:cache \
+ && php artisan optimize
 
+# expose the FPM port Render expects
+EXPOSE 9000
 
-# 8. Generate app key if needed
-
-# 9. Expose the port and start Laravel's server
-EXPOSE 8000
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+# run FPM (Render will auto‐detect and forward HTTP traffic)
+CMD ["php-fpm"]

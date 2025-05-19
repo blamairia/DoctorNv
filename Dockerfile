@@ -29,6 +29,10 @@ COPY composer.json composer.lock ./
 # 7. Copy the rest of your app
 COPY . .
 
+# after COPY . .
+RUN composer dump-autoload --optimize
+
+
 # 8. Generate app key if needed
 
 # 9. Expose the port and start Laravel's server

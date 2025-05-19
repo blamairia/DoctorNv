@@ -25,13 +25,11 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 
 # 6. Install PHP deps
-RUN composer install --no-dev --optimize-autoloader
 
 # 7. Copy the rest of your app
 COPY . .
 
 # 8. Generate app key if needed
-RUN php artisan key:generate --ansi
 
 # 9. Expose the port and start Laravel's server
 EXPOSE 8000

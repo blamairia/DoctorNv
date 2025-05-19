@@ -8,7 +8,6 @@ WORKDIR /app
 COPY . .
 
 # Expose FPM port
-EXPOSE 9000
-
-# Start PHP-FPM
-CMD ["php-fpm"]
+# 9. Expose the port and start Laravel's server
+EXPOSE 8000
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]

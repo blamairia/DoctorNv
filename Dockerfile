@@ -1,6 +1,6 @@
 # Dockerfile
 
-# 1. Base image with Debian and PHP 8.2 (includes libssl)
+# 1. Base image with PHP + Debian (has libssl)
 FROM php:8.2-fpm-bullseye
 
 # 2. Install system deps & PHP extensions
@@ -14,13 +14,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # 4. Set working directory
 WORKDIR /var/www/html
 
-# 5. Copy code & install dependencies
+# 5. Copy only composer files first (for caching)
+COPY composer.json composer.lock ./
+
+# 6. Install PHP deps
+RUN composer install --no-dev --optimize-autoloader
+
+# 7. Now copy the rest of the app
 COPY . .
 
+# 8. Generate app key (only if you haven’t committed APP_KEY)
+RUN php artisan key:generate --ansi
 
-# 6. Expose the port Laravel’s server will listen on
+# 9. Expose port and start the server
 EXPOSE 8000
-
-# 7. Start Laravel’s built-in server on 0.0.0.0:8000
-#    Use sh -c so $PORT can be injected by your host (e.g. Render sets $PORT)
 CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]

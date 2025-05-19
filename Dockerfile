@@ -16,8 +16,7 @@ WORKDIR /var/www/html
 
 # 5. Copy code & install dependencies
 COPY . .
-RUN composer install --no-dev --optimize-autoloader \
- && php artisan key:generate --ansi
+
 
 # 6. Expose the port Laravel’s server will listen on
 EXPOSE 8000

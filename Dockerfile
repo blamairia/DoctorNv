@@ -1,51 +1,41 @@
-# ── stage 1: build the vendor dir ──────────────────────────────────────
-FROM composer:2 AS vendor
+# ── stage 0: build your vendor dir with PHP 8.2 CLI ────────────────────────────
+FROM php:8.2-cli AS vendor
 
-WORKDIR /app
-
-# only copy composer files first so we cache this layer
-COPY composer.json composer.lock ./
-
-# install & optimize autoloader (no dev)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-# ── stage 2: runtime image ────────────────────────────────────────────
-FROM php:8.2-fpm-bullseye
-
-# install Linux deps + compile PHP extensions
+# install system deps & intl (just like your fpm stage)
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      libpq-dev \
-      zlib1g-dev \
-      libzip-dev \
       libicu-dev \
-      git \
+      libzip-dev \
       unzip \
- && docker-php-ext-install \
-      pdo_pgsql \
-      zip \
-      intl \
+ && docker-php-ext-install intl zip \
  && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
+# install composer
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
-# copy in the baked vendor/ (with PSR-4 maps)
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install \
+      --no-dev \
+      --optimize-autoloader \
+      --no-interaction \
+      --no-progress
+
+# ── stage 1: your normal PHP-FPM runtime ──────────────────────────────────────
+FROM php:8.2-fpm-bullseye
+
+# same dependencies as before...
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      libicu-dev \
+      libzip-dev \
+      unzip \
+      libpq-dev \
+ && docker-php-ext-install intl zip pdo_pgsql \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
 COPY --from=vendor /app/vendor ./vendor
-
-# copy the rest of your application
 COPY . .
 
-# clear & cache everything so Laravel (and Filament) see your new widget
-RUN chown -R www-data:www-data storage bootstrap/cache \
- && chmod -R 775 storage bootstrap/cache \
- && php artisan key:generate --ansi \
- && php artisan config:cache \
- && php artisan route:cache \
- && php artisan view:cache \
- && php artisan optimize
-
-# expose the FPM port Render expects
-EXPOSE 9000
-
-# run FPM (Render will auto‐detect and forward HTTP traffic)
-CMD ["php-fpm"]
+# …rest of your fpm configuration…
